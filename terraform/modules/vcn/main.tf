@@ -1,5 +1,5 @@
 variable "compartment_id" {
-  description = "OCID of the compartment where the VCN will be created"
+  description = "OCID do compartimento onde a VCN será criada"
   type        = string
 }
 
@@ -9,7 +9,7 @@ variable "vcn_cidr" {
 }
 
 variable "vcn_dns_label" {
-  default = "production"
+  default = "producao"
   type    = string
 }
 
@@ -42,25 +42,26 @@ resource "oci_core_internet_gateway" "this" {
   enabled        = true
 }
 
-resource "oci_core_nat_gateway" "this" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.this.id
-  display_name   = "gateway-nat"
-}
+# NAT Gateway e Service Gateway comentados devido a limites de cota na região de São Paulo
+# resource "oci_core_nat_gateway" "this" {
+#   compartment_id = var.compartment_id
+#   vcn_id         = oci_core_vcn.this.id
+#   display_name   = "gateway-nat"
+# }
+
+# resource "oci_core_service_gateway" "this" {
+#   compartment_id = var.compartment_id
+#   vcn_id         = oci_core_vcn.this.id
+#   display_name   = "gateway-servico"
+#   services {
+#     service_id = data.oci_core_services.all_services.services[0].id
+#   }
+# }
 
 data "oci_core_services" "all_services" {
 }
 
-resource "oci_core_service_gateway" "this" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.this.id
-  display_name   = "gateway-servico"
-  services {
-    service_id = data.oci_core_services.all_services.services[0].id
-  }
-}
-
-# Tabelas de Roteamento
+# Tabelas de Roteamento (Ajustadas para usar apenas IGW onde permitido)
 resource "oci_core_route_table" "public" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.this.id
@@ -77,30 +78,14 @@ resource "oci_core_route_table" "private" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.this.id
   display_name   = "tabela-rota-privada"
-
-  route_rules {
-    destination       = "0.0.0.0/0"
-    destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_nat_gateway.this.id
-  }
-
-  route_rules {
-    destination       = data.oci_core_services.all_services.services[0].cidr_block
-    destination_type  = "SERVICE_CIDR_BLOCK"
-    network_entity_id = oci_core_service_gateway.this.id
-  }
+  
+  # Regras de NAT e Service Gateway removidas por limitações de cota
 }
 
 resource "oci_core_route_table" "database" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.this.id
   display_name   = "tabela-rota-banco-dados"
-
-  route_rules {
-    destination       = data.oci_core_services.all_services.services[0].cidr_block
-    destination_type  = "SERVICE_CIDR_BLOCK"
-    network_entity_id = oci_core_service_gateway.this.id
-  }
 }
 
 # Sub-redes
