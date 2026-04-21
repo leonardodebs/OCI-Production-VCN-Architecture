@@ -1,5 +1,38 @@
 # Documentação de Arquitetura: Fundação VCN OCI
 
+## 📊 Visualização da Infraestrutura
+
+```mermaid
+graph TD
+    subgraph Regiao_OCI [Região OCI]
+        subgraph VCN [VCN de Produção - 10.0.0.0/16]
+            IGW[Internet Gateway]
+            
+            subgraph Subrede_Publica [Sub-rede Pública - 10.0.1.0/24]
+                LB[Load Balancer]
+                Bastion[Host de Salto]
+            end
+            
+            subgraph Subrede_Privada [Sub-rede Privada - 10.0.10.0/24]
+                App[Servidores de Aplicação]
+            end
+            
+            subgraph Subrede_Banco_Dados [Sub-rede de Banco de Dados - 10.0.20.0/24]
+                DB[Banco Autônomo / MySQL]
+            end
+        end
+        
+        Logging[OCI Logging - Log Group]
+        OSS[Object Storage - Estado Remoto]
+    end
+
+    Usuarios --> IGW
+    IGW --> Subrede_Publica
+    Subrede_Publica --> App
+    App --> Subrede_Banco_Dados
+    VCN --> Logging
+```
+
 Este documento detalha as decisões técnicas e a estrutura da rede implementada para a arquitetura de produção na Oracle Cloud Infrastructure (OCI).
 
 ## 1. Topologia de Rede (VCN)
