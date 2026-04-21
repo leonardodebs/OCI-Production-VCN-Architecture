@@ -26,3 +26,15 @@ module "flow_logs" {
   compartment_id = module.compartments.network_compartment_id
   vcn_id         = module.vcn.vcn_id
 }
+
+module "compute_instance" {
+  source         = "../../modules/compute"
+  compartment_id = module.compartments.compute_compartment_id
+  subnet_id      = module.vcn.public_subnet_id
+  nsg_id         = module.security.web_lb_nsg_id
+  ssh_public_key = var.ssh_public_key
+}
+
+output "web_server_ip" {
+  value = module.compute_instance.public_ip
+}

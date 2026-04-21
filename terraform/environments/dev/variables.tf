@@ -23,3 +23,8 @@ variable "compartment_id" {
   description = "The OCID of the parent compartment"
   type        = string
 }
+
+variable "ssh_public_key" {
+  description = "Conteúdo da chave pública SSH"
+  type        = string
+}
