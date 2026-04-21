@@ -1,0 +1,49 @@
+name: 'Validação Terraform'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  terraform:
+    name: 'Validar Terraform'
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
+      TF_VAR_user_ocid: ${{ secrets.OCI_USER_OCID }}
+      TF_VAR_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
+      TF_VAR_private_key_path: "./oci_api_key.pem"
+      TF_VAR_region: ${{ secrets.OCI_REGION }}
+      TF_VAR_compartment_id: ${{ secrets.OCI_COMPARTMENT_OCID }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configurar Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: 'Decodificar Chave de API OCI'
+      run: echo "${{ secrets.OCI_PRIVATE_KEY }}" > oci_api_key.pem
+
+    - name: Formatação Terraform
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Init (Desenvolvimento)
+      run: cd terraform/environments/dev && terraform init -backend=false
+
+    - name: Terraform Validate (Desenvolvimento)
+      run: cd terraform/environments/dev && terraform validate
+
+    - name: Terraform Init (Produção)
+      run: cd terraform/environments/prod && terraform init -backend=false
+
+    - name: Terraform Validate (Produção)
+      run: cd terraform/environments/prod && terraform validate
