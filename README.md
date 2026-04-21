@@ -1,47 +1,11 @@
 # Arquitetura VCN de Produção OCI
 
-[![Validação Terraform](https://github.com/leonardodebs/OCI-Production-VCN-Architecture/actions/workflows/terraform-validate.yml/badge.svg)](https://github.com/leonardodebs/OCI-Production-VCN-Architecture/actions/workflows/terraform-validate.yml)
+
 
 Uma fundação de rede de nível de produção para Oracle Cloud Infrastructure (OCI) construída com Terraform, seguindo estritamente os limites do **Always Free Tier**.
 
-## 🏗️ Diagrama da Arquitetura
 
-```mermaid
-graph TD
-    subgraph Regiao_OCI [Região OCI]
-        subgraph VCN [VCN de Produção - 10.0.0.0/16]
-            IGW[Internet Gateway]
-            NAT[NAT Gateway]
-            SGW[Service Gateway]
-            
-            subgraph Subrede_Publica [Sub-rede Pública - 10.0.1.0/24]
-                LB[Load Balancer]
-                Bastion[Host de Salto]
-            end
-            
-            subgraph Subrede_Privada [Sub-rede Privada - 10.0.10.0/24]
-                App[Servidores de Aplicação]
-            end
-            
-            subgraph Subrede_Banco_Dados [Sub-rede de Banco de Dados - 10.0.20.0/24]
-                DB[Banco Autônomo / MySQL]
-            end
-        end
-        
-        Logging[OCI Logging - Flow Logs]
-        OSS[Object Storage - Estado Remoto]
-    end
 
-    Usuarios --> IGW
-    IGW --> Subrede_Publica
-    Subrede_Publica --> App
-    App --> SGW
-    SGW --> Servicos_OCI[Serviços OCI - Gerenciamento de SO, etc.]
-    App --> Subrede_Banco_Dados
-    App --> NAT
-    NAT --> Internet[Atualizações Ubuntu/App]
-    VCN --> Logging
-```
 
 ### 🖼️ Visão Técnica 3D
 ![Arquitetura OCI 3D](./oci-architecture.png)
